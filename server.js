@@ -16,11 +16,11 @@ const PORT = 3001;
 
 const uploadsDir = join(__dirname, 'uploads');
 const sharedFilesDir = join(__dirname, 'shared_files');
+const chatDir = join(__dirname, 'chat');
 const usersFile = join(__dirname, 'users.json');
 const accountsFile = join(__dirname, 'accounts.json');
 const callsFile = join(__dirname, 'calls.json');
 const filesMetaFile = join(__dirname, 'files_meta.json');
-const messagesFile = join(__dirname, 'messages.json');
 const signalingMessages = [];
 let messageIdCounter = 0;
 let callIdCounter = 0;
@@ -61,8 +61,7 @@ async function initializeFiles() {
         { path: usersFile, content: [] },
         { path: accountsFile, content: [] },
         { path: callsFile, content: [] },
-        { path: filesMetaFile, content: [] },
-        { path: messagesFile, content: [] }
+        { path: filesMetaFile, content: [] }
     ];
 
     for (const file of files) {
@@ -75,6 +74,7 @@ async function initializeFiles() {
 
     await fs.mkdir(uploadsDir, { recursive: true });
     await fs.mkdir(sharedFilesDir, { recursive: true });
+    await fs.mkdir(chatDir, { recursive: true });
 }
 
 setInterval(async () => {
@@ -291,13 +291,19 @@ app.delete('/api/files/:fileId', async (req, res) => {
 });
 
 // ==================== MESSAGES ====================
+function getChatFileName(userId1, userId2) {
+    const sorted = [userId1, userId2].sort();
+    return join(chatDir, `${sorted[0]}-${sorted[1]}.json`);
+}
+
 app.post('/api/messages', async (req, res) => {
     try {
         const { fromId, toId, fromName, toName, content } = req.body;
 
+        const chatFile = getChatFileName(fromId, toId);
         let messages = [];
         try {
-            const data = await fs.readFile(messagesFile, 'utf-8');
+            const data = await fs.readFile(chatFile, 'utf-8');
             messages = JSON.parse(data);
         } catch {}
 
@@ -313,7 +319,7 @@ app.post('/api/messages', async (req, res) => {
         };
 
         messages.push(message);
-        await fs.writeFile(messagesFile, JSON.stringify(messages, null, 2));
+        await fs.writeFile(chatFile, JSON.stringify(messages, null, 2));
 
         res.json({ success: true, message });
     } catch (error) {
@@ -325,18 +331,14 @@ app.get('/api/messages', async (req, res) => {
     try {
         const { userId, otherUserId } = req.query;
 
+        const chatFile = getChatFileName(userId, otherUserId);
         let messages = [];
         try {
-            const data = await fs.readFile(messagesFile, 'utf-8');
+            const data = await fs.readFile(chatFile, 'utf-8');
             messages = JSON.parse(data);
         } catch {}
 
-        const conversationMessages = messages.filter(msg =>
-            (msg.fromId === userId && msg.toId === otherUserId) ||
-            (msg.fromId === otherUserId && msg.toId === userId)
-        );
-
-        res.json(conversationMessages);
+        res.json(messages);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -610,11 +612,11 @@ app.get('/api/calls', async (req, res) => {
     }
 });
 
-// ✅ Update call status (accept/reject)
+// ✅ Update call status (accept/reject/ended)
 app.patch('/api/calls/:callId', async (req, res) => {
     try {
         const { callId } = req.params;
-        const { status } = req.body; // 'accepted' or 'rejected'
+        const { status } = req.body;
 
         let calls = [];
         try {
@@ -627,10 +629,15 @@ app.patch('/api/calls/:callId', async (req, res) => {
             return res.status(404).json({ error: 'Call not found' });
         }
 
-        calls[callIndex].status = status;
+        if (status === 'rejected' || status === 'ended') {
+            calls.splice(callIndex, 1);
+        } else {
+            calls[callIndex].status = status;
+        }
+
         await fs.writeFile(callsFile, JSON.stringify(calls, null, 2));
 
-        res.json({ success: true, call: calls[callIndex] });
+        res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

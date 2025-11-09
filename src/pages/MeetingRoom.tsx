@@ -37,6 +37,19 @@ export function MeetingRoom({ account, roomId, onLeave }: MeetingRoomProps) {
         localPeerName,
     } = useLocalNetwork(account.fullName, roomId);
 
+    const handleLeave = async () => {
+        const activeCallId = localStorage.getItem('activeCallId');
+        if (activeCallId) {
+            await fetch(`${API_URL}/api/calls/${activeCallId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'ended' }),
+            }).catch(err => console.error('Failed to end call:', err));
+            localStorage.removeItem('activeCallId');
+        }
+        onLeave();
+    };
+
     // Start video when room loads
     useEffect(() => {
         if (localPeerId) {
@@ -118,7 +131,7 @@ export function MeetingRoom({ account, roomId, onLeave }: MeetingRoomProps) {
                             </button>
                         </div>
                         <button
-                            onClick={onLeave}
+                            onClick={handleLeave}
                             className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Leave meeting"
                         >

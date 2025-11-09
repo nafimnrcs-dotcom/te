@@ -148,10 +148,10 @@ function App() {
         setCurrentPage('meeting');
     };
 
-    const handleCallUser = (targetAccountId: string, targetName: string) => {
+    const handleCallUser = async (targetAccountId: string, targetName: string) => {
         const callRoomId = `call-${account?.id}-${targetAccountId}-${Date.now()}`;
 
-        fetch(`${API_URL}/api/calls`, {
+        const response = await fetch(`${API_URL}/api/calls`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -163,6 +163,13 @@ function App() {
             }),
         });
 
+        if (response.ok) {
+            const data = await response.json();
+            if (data.call) {
+                localStorage.setItem('activeCallId', data.call.id);
+            }
+        }
+
         handleJoinMeeting(callRoomId);
     };
 
@@ -172,16 +179,29 @@ function App() {
     };
 
     // ✅ Handle accepting incoming call
-    const handleAcceptCall = () => {
+    const handleAcceptCall = async () => {
         if (incomingCall) {
+            await fetch(`${API_URL}/api/calls/${incomingCall.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'accepted' }),
+            });
+
             handleJoinMeeting(incomingCall.roomId);
             setIncomingCall(null);
         }
     };
 
     // ✅ Handle rejecting incoming call
-    const handleRejectCall = () => {
-        setIncomingCall(null);
+    const handleRejectCall = async () => {
+        if (incomingCall) {
+            await fetch(`${API_URL}/api/calls/${incomingCall.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'rejected' }),
+            });
+            setIncomingCall(null);
+        }
     };
 
     if (isLoading) {
