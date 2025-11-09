@@ -55,7 +55,7 @@ export function MessagesPage({ account, targetUser, onBack }: MessagesPageProps)
 
         setSending(true);
         const messageContent = newMessage.trim();
-        setNewMessage(''); // ✅ Clear input immediately for better UX
+        setNewMessage('');
 
         try {
             const response = await fetch(`${API_URL}/api/messages`, {
@@ -71,10 +71,8 @@ export function MessagesPage({ account, targetUser, onBack }: MessagesPageProps)
             });
 
             if (response.ok) {
-                // ✅ Immediately reload messages
                 await loadMessages();
             } else {
-                // ✅ Restore message if send failed
                 setNewMessage(messageContent);
                 alert('Failed to send message');
             }

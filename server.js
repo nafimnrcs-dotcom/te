@@ -344,6 +344,50 @@ app.get('/api/messages', async (req, res) => {
     }
 });
 
+// ==================== GLOBAL CHAT ====================
+const globalChatFile = join(chatDir, 'global.json');
+
+app.post('/api/global-chat', async (req, res) => {
+    try {
+        const { fromId, fromName, content } = req.body;
+
+        let messages = [];
+        try {
+            const data = await fs.readFile(globalChatFile, 'utf-8');
+            messages = JSON.parse(data);
+        } catch {}
+
+        const message = {
+            id: `global-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            fromId,
+            fromName,
+            content,
+            timestamp: Date.now()
+        };
+
+        messages.push(message);
+        await fs.writeFile(globalChatFile, JSON.stringify(messages, null, 2));
+
+        res.json({ success: true, message });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/global-chat', async (req, res) => {
+    try {
+        let messages = [];
+        try {
+            const data = await fs.readFile(globalChatFile, 'utf-8');
+            messages = JSON.parse(data);
+        } catch {}
+
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ==================== CALLS ====================
 app.post('/api/calls', async (req, res) => {
     try {

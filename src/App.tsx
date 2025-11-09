@@ -26,6 +26,14 @@ interface IncomingCall {
     createdAt: number;
 }
 
+interface Notification {
+    id: string;
+    type: 'message' | 'call' | 'global';
+    from: string;
+    message: string;
+    timestamp: number;
+}
+
 type Page = 'login' | 'signup' | 'home' | 'meeting' | 'users' | 'fileserver' | 'sharedwithme' | 'messages';
 
 function App() {
@@ -35,6 +43,7 @@ function App() {
     const [selectedUser, setSelectedUser] = useState<Account | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
 
     // Load saved auth on mount
     useEffect(() => {
@@ -204,6 +213,20 @@ function App() {
         }
     };
 
+    const addNotification = (notification: Omit<Notification, 'id'>) => {
+        const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const newNotif: Notification = { ...notification, id };
+        setNotifications(prev => [newNotif, ...prev]);
+
+        setTimeout(() => {
+            setNotifications(prev => prev.filter(n => n.id !== id));
+        }, 10000);
+    };
+
+    const clearNotification = (id: string) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
@@ -292,6 +315,9 @@ function App() {
                     onViewUsers={() => setCurrentPage('users')}
                     onViewFileServer={() => setCurrentPage('fileserver')}
                     onViewSharedWithMe={() => setCurrentPage('sharedwithme')}
+                    notifications={notifications}
+                    onClearNotification={clearNotification}
+                    onAddNotification={addNotification}
                 />
 
                 {/* ✅ Incoming Call Notification */}
