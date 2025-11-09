@@ -1,0 +1,40 @@
+[
+  {
+    "id": "file-1762716288374-wyt9v05y2",
+    "filename": "1762716288371-.claude.json.backup",
+    "originalName": ".claude.json.backup",
+    "size": 39310,
+    "uploaderId": "unknown",
+    "uploaderName": "Unknown",
+    "sharedWith": [],
+    "isPublic": false,
+    "uploadedAt": 1762716288374,
+    "path": "/uploads/1762716288371-.claude.json.backup"
+  },
+  {
+    "id": "file-1762716371954-5l5hy3rwm",
+    "filename": "1762716371953-.claude.json.backup",
+    "originalName": ".claude.json.backup",
+    "size": 39310,
+    "uploaderId": "acc-1762716210769-cg82z8d9a",
+    "uploaderName": "wolve",
+    "sharedWith": [],
+    "isPublic": true,
+    "uploadedAt": 1762716371954,
+    "path": "/shared_files/1762716371953-.claude.json.backup"
+  },
+  {
+    "id": "file-1762716833991-hy1yn8p23",
+    "filename": "1762716833988-.gitconfig",
+    "originalName": ".gitconfig",
+    "size": 286,
+    "uploaderId": "acc-1762716210769-cg82z8d9a",
+    "uploaderName": "wolve",
+    "sharedWith": [
+      "acc-1762709791512-n6axj0ino"
+    ],
+    "isPublic": false,
+    "uploadedAt": 1762716833991,
+    "path": "/uploads/1762716833988-.gitconfig"
+  }
+]
